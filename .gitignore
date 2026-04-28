@@ -1,0 +1,11 @@
+# Secrets and environments
+.env
+venv/
+env/
+.streamlit/secrets.toml
+
+# Python cache
+__pycache__/
+*.pyc
+
+dazzling-trail-479218-p2-*.json
