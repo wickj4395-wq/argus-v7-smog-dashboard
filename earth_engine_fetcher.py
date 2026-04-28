@@ -52,16 +52,18 @@ class EarthEngineDataFetcher:
         # Strategy 1: Service account from Streamlit secrets
         try:
             sa_info = dict(st.secrets["gcp_service_account"])
+            # Fix common TOML issue: literal \\n in private_key must be real newlines
+            if "private_key" in sa_info:
+                sa_info["private_key"] = sa_info["private_key"].replace("\\n", "\n")
             from google.oauth2 import service_account
             credentials = service_account.Credentials.from_service_account_info(
                 sa_info,
                 scopes=["https://www.googleapis.com/auth/earthengine"]
             )
             ee.Initialize(credentials=credentials, project=self.project_name)
-            print("[EE] Initialized via Streamlit secrets (service account)")
             return
-        except (KeyError, FileNotFoundError, Exception) as e:
-            print(f"[EE] Streamlit secrets not available: {e}")
+        except Exception as e:
+            st.warning(f"⚠️ Secrets auth failed: {type(e).__name__}: {e}")
 
         # Strategy 2: Service account JSON file on disk
         import json, glob
@@ -76,15 +78,13 @@ class EarthEngineDataFetcher:
                         scopes=["https://www.googleapis.com/auth/earthengine"]
                     )
                     ee.Initialize(credentials=credentials, project=self.project_name)
-                    print(f"[EE] Initialized via JSON file: {jf}")
                     return
             except Exception:
                 continue
 
-        # Strategy 3: Default persistent credentials (local `earthengine authenticate`)
+        # Strategy 3: Default persistent credentials (local dev)
         try:
             ee.Initialize(project=self.project_name)
-            print("[EE] Initialized via persistent credentials")
         except Exception as e:
             st.error(
                 f"Earth Engine initialization failed: {str(e)}\n\n"
