@@ -50,7 +50,20 @@ class EarthEngineDataFetcher:
     
     def initialize_ee(self):
         try:
-            ee.Initialize(project=self.project_name)
+            # On Streamlit Cloud: use service account credentials from secrets
+            if "gcp_service_account" in st.secrets:
+                import json
+                from google.oauth2 import service_account
+                
+                key_dict = dict(st.secrets["gcp_service_account"])
+                credentials = service_account.Credentials.from_service_account_info(
+                    key_dict,
+                    scopes=["https://www.googleapis.com/auth/earthengine"]
+                )
+                ee.Initialize(credentials=credentials, project=self.project_name)
+            else:
+                # Local development: use persistent credentials from `earthengine authenticate`
+                ee.Initialize(project=self.project_name)
         except Exception as e:
             st.error(f"Earth Engine initialization failed: {str(e)}")
             raise
