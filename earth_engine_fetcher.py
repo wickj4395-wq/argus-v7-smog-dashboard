@@ -260,7 +260,7 @@ class EarthEngineDataFetcher:
         except: pass
         return out
 
-    def fetch_wx_forecast(self, days=2):
+    def fetch_wx_forecast(self, days=4):
         hvars=','.join(['windspeed_10m','winddirection_10m','relativehumidity_2m',
                         'temperature_2m','boundary_layer_height','cloudcover',
                         'surface_pressure','shortwave_radiation','precipitation','cloudcover_low'])
@@ -364,7 +364,7 @@ class EarthEngineDataFetcher:
         import concurrent.futures
 
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=5)
-        future_wx = executor.submit(self.fetch_wx_forecast, 2)
+        future_wx = executor.submit(self.fetch_wx_forecast, 4)
         future_wxh = executor.submit(self.fetch_weather_and_pm25, (TODAY-timedelta(36)).strftime('%Y-%m-%d'), (TODAY-timedelta(1)).strftime('%Y-%m-%d'))
 
         # v8.0 corrected fallback order: LANCE-NRT -> MERRA-2 (~1d) -> MAIAC-GEE (last resort)
@@ -455,7 +455,7 @@ class EarthEngineDataFetcher:
                 row.update(mdata); row.update({k:gas.get(k,0.) for k in['no2','so2','co','o3','uvai']}); row.update(fire)
 
         fc_rows=[]
-        for fday,flabel in[(0,'T+0 (Today)'),(1,'T+1 (Tomorrow)')]:
+        for fday,flabel in[(0,'T+0 (Today)'),(1,'T+1 (Tomorrow)'),(2,'T+2 (Day After)'),(3,'T+3 (In 3 Days)')]:
             fd=TODAY+timedelta(fday); fds=fd.strftime('%Y-%m-%d')
             if fds not in wx: continue
             row={'date':pd.Timestamp(fd),'forecast_label':flabel,
