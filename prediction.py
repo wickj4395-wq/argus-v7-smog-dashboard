@@ -103,7 +103,7 @@ class SmogPredictor:
 
     def predict_forecasts(self, hist_rows, fc_rows, SL=14):
         """
-        Returns predictions for T+0 and T+1
+        Returns predictions for T+0 to T+3
         """
         fc_scaled, seq_scaled = self.preprocessor.preprocess_forecasts(hist_rows, fc_rows, SL)
         
